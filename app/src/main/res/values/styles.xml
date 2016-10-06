@@ -8,4 +8,51 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="BaseText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="BaseText.Grey">
+        <item name="android:textColor">@color/grey</item>
+    </style>
+
+    <style name="BaseText.Grey.Small">
+        <item name="android:textSize">@dimen/text_small</item>
+    </style>
+
+    <style name="BaseText.Grey.Small.Margin">
+        <item name="android:layout_margin">@dimen/margin_small</item>
+    </style>
+
+    <style name="BaseText.Grey.Small.Bold">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BaseText.Grey.Medium">
+        <item name="android:textSize">@dimen/text_medium</item>
+    </style>
+
+    <style name="BaseText.MarginTop">
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+    </style>
+
+    <style name="MovieDetailsTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">120dp</item>
+        <item name="android:background">@color/title_backgroud</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:padding">@dimen/activity_horizontal_margin</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/text_medium</item>
+    </style>
+
+    <style name="MovieDetailsPosterThumbnail">
+        <item name="android:layout_width">150dp</item>
+        <item name="android:layout_height">225dp</item>
+        <item name="android:layout_alignParentLeft">true</item>
+        <item name="android:layout_margin">@dimen/margin_small</item>
+    </style>
+
+
 </resources>

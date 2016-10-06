@@ -8,10 +8,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -41,6 +43,7 @@ import br.com.fabioluis.utils.Utils;
 public class PopularMoviesFragment extends Fragment {
 
     private MoviesAdapter mMoviesAdapter;
+    private String sortOrder;
 
     public PopularMoviesFragment() {
         // Required empty public constructor
@@ -49,6 +52,13 @@ public class PopularMoviesFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
+        if(savedInstanceState != null){
+            sortOrder = savedInstanceState.getString("sortOrder");
+        } else {
+            sortOrder = getString(R.string.pref_sort_order_default);
+        }
     }
 
     @Override
@@ -79,13 +89,38 @@ public class PopularMoviesFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.popular_movies, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_settings_highest_rated) {
+            sortOrder = getString(R.string.pref_sort_order_highest_rated);
+            updateMovies();
+        } else if (item.getItemId() == R.id.action_settings_most_popular) {
+            sortOrder = getString(R.string.pref_sort_order_most_popular);
+            updateMovies();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("sortOrder", sortOrder);
+    }
+
     public void updateMovies() {
         if (Utils.isOnLine(getContext())) {
             FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-            String sort = PreferenceManager.getDefaultSharedPreferences(getActivity())
-                    .getString(getString(R.string.pref_sort_order_key),
-                            getString(R.string.pref_sort_order_default));
-            fetchMoviesTask.execute(sort);
+//            String sort = PreferenceManager.getDefaultSharedPreferences(getActivity())
+//                    .getString(getString(R.string.pref_sort_order_key),
+//                            getString(R.string.pref_sort_order_default));
+            fetchMoviesTask.execute(sortOrder);
         } else {
             Toast.makeText(getContext(), R.string.no_internet_connection, Toast.LENGTH_LONG).show();
         }
