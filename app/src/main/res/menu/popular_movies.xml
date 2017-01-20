@@ -2,13 +2,33 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_settings_highest_rated"
+        android:title="@string/pref_sort_order_highest_rated_label"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_settings_most_popular"
         android:title="@string/pref_sort_order_most_popular_label"
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_settings_highest_rated"
-        android:title="@string/pref_sort_order_highest_rated_label"
+        android:id="@+id/action_settings_now_playing"
+        android:title="@string/pref_sort_order_now_playing_label"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings_upcoming"
+        android:title="@string/pref_sort_order_upcoming_label"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings_favorites"
+        android:title="@string/pref_sort_order_favorites_label"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/receber_notificacoes"
+        android:title="Receber notificações"
+        android:checkable="true"
+        app:showAsAction="never"/>
 
 </menu>

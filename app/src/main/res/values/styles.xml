@@ -33,18 +33,23 @@
         <item name="android:textSize">@dimen/text_medium</item>
     </style>
 
+    <style name="BaseText.Grey.Medium.Bold">
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="BaseText.MarginTop">
         <item name="android:layout_marginTop">@dimen/margin_small</item>
     </style>
 
     <style name="MovieDetailsTitle">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">120dp</item>
-        <item name="android:background">@color/title_backgroud</item>
         <item name="android:gravity">center_vertical</item>
-        <item name="android:padding">@dimen/activity_horizontal_margin</item>
         <item name="android:textColor">@color/white</item>
-        <item name="android:textSize">@dimen/text_medium</item>
+        <item name="android:textSize">@dimen/text_small</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@color/black_50_opacity</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:paddingLeft">@dimen/activity_horizontal_margin</item>
     </style>
 
     <style name="MovieDetailsPosterThumbnail">
@@ -54,5 +59,24 @@
         <item name="android:layout_margin">@dimen/margin_small</item>
     </style>
 
+    <style name="MovieDetailsBackdrop">
+        <item name="android:adjustViewBounds">true</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:scaleType">centerCrop</item>
+    </style>
+
+    <style name="ListaVazia">
+        <item name="android:textSize">@dimen/text_medium</item>
+        <item name="android:padding">@dimen/activity_horizontal_margin</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="MovieDetailsYouTubePlay" >
+        <item name="android:layout_width">60dp</item>
+        <item name="android:layout_height">30dp</item>
+        <item name="android:layout_alignParentLeft">true</item>
+        <item name="android:layout_margin">@dimen/margin_youtube_trailer</item>
+    </style>
 
 </resources>

@@ -5,41 +5,52 @@
 package br.com.fabioluis.popularmovies;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.List;
-
-import br.com.fabioluis.popularmovies.model.Movie;
+import br.com.fabioluis.utils.Utils;
 
 /**
  * Created by Fabio Luis on 28/09/2016.
  */
 
-public class MoviesAdapter extends ArrayAdapter<Movie> {
-    public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
+public class MoviesAdapter extends CursorAdapter {
 
-    public MoviesAdapter(Context context, List<Movie> movies) {
-        super(context, 0, movies);
+    public MoviesAdapter(Context context, Cursor c, int flags) {
+        super(context, c, flags);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        Movie movie = getItem(position);
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        View view = LayoutInflater.from(context).inflate(R.layout.list_item_movies, parent, false);
+        ViewHolder viewHolder = new ViewHolder(view);
+        view.setTag(viewHolder);
 
-        if (convertView == null) {
-            convertView = LayoutInflater.from(getContext())
-                    .inflate(R.layout.list_item_movies, parent, false);
+        return view;
+    }
+
+    @Override
+    public void bindView(View view, Context context, Cursor cursor) {
+        ViewHolder viewHolder = (ViewHolder) view.getTag();
+        String poster = cursor.getString(PopularMoviesFragment.COL_POSTER);
+
+        Picasso.with(context)
+                .load(Utils.POSTER_BASE_URL + poster)
+                .resize(185, 277)
+                .into(viewHolder.imageView);
+    }
+
+    public class ViewHolder {
+        public final ImageView imageView;
+
+        public ViewHolder(View view) {
+            this.imageView = (ImageView) view.findViewById(R.id.list_item_movie);
         }
-
-        ImageView imageView = (ImageView) convertView.findViewById(R.id.list_item_movie);
-        Picasso.with(getContext()).load(IMAGE_BASE_URL + movie.getPosterPath()).into(imageView);
-
-        return convertView;
     }
 }

@@ -4,12 +4,16 @@
 
 package br.com.fabioluis.popularmovies;
 
-import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,32 +22,56 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import br.com.fabioluis.popularmovies.model.Movie;
-import br.com.fabioluis.utils.Utils;
+import br.com.fabioluis.popularmovies.data.PopularMoviesContract;
 
 
-public class PopularMoviesFragment extends Fragment {
+public class PopularMoviesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    static final int COL_ID = 0;
+    static final int COL_MOVIE_ID = 1;
+    static final int COL_FAVORITE = 2;
+    static final int COL_BACKDROP = 3;
+    static final int COL_ORIGINAL_TITLE = 4;
+    static final int COL_OVERVIEW = 5;
+    static final int COL_POPULARITY = 6;
+    static final int COL_POSTER = 7;
+    static final int COL_RELEASE_DATE = 8;
+    static final int COL_TITLE = 9;
+    static final int COL_VIDEO = 10;
+    static final int COL_VOTE_AVERAGE = 11;
+    static final int COL_VOTE_COUNT = 12;
+
+    private static final String[] sMovieColumns = {
+            PopularMoviesContract.MoviesEntry.TABLE_NAME + "." + PopularMoviesContract.MoviesEntry._ID,
+            PopularMoviesContract.MoviesEntry.TABLE_NAME + "." + PopularMoviesContract.MoviesEntry.COLUMN_MOVIE_ID,
+            PopularMoviesContract.MoviesEntry.COLUMN_FAVORITE,
+            PopularMoviesContract.MoviesEntry.COLUMN_BACKDROP,
+            PopularMoviesContract.MoviesEntry.COLUMN_ORIGINAL_TITLE,
+            PopularMoviesContract.MoviesEntry.COLUMN_OVERVIEW,
+            PopularMoviesContract.MoviesEntry.COLUMN_POPULARITY,
+            PopularMoviesContract.MoviesEntry.COLUMN_POSTER,
+            PopularMoviesContract.MoviesEntry.COLUMN_RELEASE_DATE,
+            PopularMoviesContract.MoviesEntry.COLUMN_TITLE,
+            PopularMoviesContract.MoviesEntry.COLUMN_VIDEO,
+            PopularMoviesContract.MoviesEntry.COLUMN_VOTE_AVERAGE,
+            PopularMoviesContract.MoviesEntry.COLUMN_VOTE_COUNT
+    };
+
+    private static final String sLogTag = PopularMoviesFragment.class.getSimpleName();
+    private static final String sSelectedListType = "listType";
+    private static final String sSelectedPosition = "selected_position";
+    private static final int sPopularMoviesLoader = 0;
 
     private MoviesAdapter mMoviesAdapter;
-    private String sortOrder;
+    private String mListType;
+    private GridView mGridView;
+
+    private int mPosition = GridView.INVALID_POSITION;
+
+    private SharedPreferences mPreferencias;
 
     public PopularMoviesFragment() {
         // Required empty public constructor
@@ -53,18 +81,7 @@ public class PopularMoviesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
-        if(savedInstanceState != null){
-            sortOrder = savedInstanceState.getString("sortOrder");
-        } else {
-            sortOrder = getString(R.string.pref_sort_order_default);
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        updateMovies();
+        mPreferencias = PreferenceManager.getDefaultSharedPreferences(getContext());
     }
 
     @Override
@@ -72,37 +89,94 @@ public class PopularMoviesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_popular_movies, container, false);
 
-        mMoviesAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
+        mMoviesAdapter = new MoviesAdapter(getActivity(), null, 0);
 
-        GridView gridView = (GridView) view.findViewById(R.id.movies_grid);
-        gridView.setAdapter(mMoviesAdapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGridView = (GridView) view.findViewById(R.id.movies_grid);
+        mGridView.setAdapter(mMoviesAdapter);
+
+        TextView nenhumRegistroEncontrado = (TextView) view.findViewById(R.id.empty_grid_view);
+        mGridView.setEmptyView(nenhumRegistroEncontrado);
+
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(getActivity(), MovieDetails.class)
-                        .putExtra("movie", mMoviesAdapter.getItem(i));
-                startActivity(intent);
-                mMoviesAdapter.notifyDataSetChanged();
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+
+                if (cursor != null) {
+                    ((Callback) getActivity()).onItemSelected(PopularMoviesContract.MoviesEntry.
+                            buildMovieWithId(cursor.getInt(COL_MOVIE_ID)));
+                }
+                mPosition = position;
             }
         });
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(sSelectedListType)) {
+            mListType = savedInstanceState.getString(sSelectedListType);
+        } else {
+            mListType = getString(R.string.pref_sort_order_default);
+        }
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(sSelectedPosition)) {
+            mPosition = savedInstanceState.getInt(sSelectedPosition);
+        }
 
         return view;
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        getLoaderManager().initLoader(sPopularMoviesLoader, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         inflater.inflate(R.menu.popular_movies, menu);
+
+        // http://stackoverflow.com/questions/29433550/how-can-we-use-menu-items-outside-onoptionitemselected-like-in-oncreate
+        MenuItem receberNotificacoes = menu.findItem(R.id.receber_notificacoes);
+        receberNotificacoes.setChecked(mPreferencias.getBoolean(
+                getContext().getString(R.string.pref_enable_notifications_key), false)
+        );
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_settings_highest_rated) {
-            sortOrder = getString(R.string.pref_sort_order_highest_rated);
-            updateMovies();
+        if (item.getItemId() == R.id.receber_notificacoes) {
+            SharedPreferences.Editor editor = mPreferencias.edit();
+
+            // http://stackoverflow.com/questions/6239163/android-checkable-menu-item
+            if (item.isChecked()) {
+                item.setChecked(false);
+                editor.putBoolean(getContext().getString(R.string.pref_enable_notifications_key), false);
+                Toast.makeText(getContext(), R.string.notificacoes_desabilitadas, Toast.LENGTH_SHORT).show();
+            } else {
+                item.setChecked(true);
+                editor.putBoolean(getContext().getString(R.string.pref_enable_notifications_key), true);
+                Toast.makeText(getContext(), R.string.notificacoes_habilitadas, Toast.LENGTH_SHORT).show();
+            }
+
+            editor.commit();
+        } else if (item.getItemId() == R.id.action_settings_highest_rated) {
+            updateMovies(getString(R.string.pref_sort_order_highest_rated));
+            getActivity().setTitle(R.string.pref_sort_order_highest_rated_label);
+            return true;
         } else if (item.getItemId() == R.id.action_settings_most_popular) {
-            sortOrder = getString(R.string.pref_sort_order_most_popular);
-            updateMovies();
+            updateMovies(getString(R.string.pref_sort_order_most_popular));
+            getActivity().setTitle(R.string.pref_sort_order_most_popular_label);
+            return true;
+        } else if (item.getItemId() == R.id.action_settings_now_playing) {
+            updateMovies(getString(R.string.pref_sort_order_now_playing));
+            getActivity().setTitle(R.string.pref_sort_order_now_playing_label);
+            return true;
+        } else if (item.getItemId() == R.id.action_settings_upcoming) {
+            updateMovies(getString(R.string.pref_sort_order_upcoming));
+            getActivity().setTitle(R.string.pref_sort_order_upcoming_label);
+            return true;
+        } else if (item.getItemId() == R.id.action_settings_favorites) {
+            updateMovies(getString(R.string.pref_sort_order_favorites));
+            getActivity().setTitle(R.string.pref_sort_order_favorites_label);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -110,103 +184,44 @@ public class PopularMoviesFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != GridView.INVALID_POSITION) {
+            outState.putInt(sSelectedPosition, mPosition);
+        }
+
+        outState.putString(sSelectedListType, mListType);
+
         super.onSaveInstanceState(outState);
-        outState.putString("sortOrder", sortOrder);
     }
 
-    public void updateMovies() {
-        if (Utils.isOnLine(getContext())) {
-            FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-//            String sort = PreferenceManager.getDefaultSharedPreferences(getActivity())
-//                    .getString(getString(R.string.pref_sort_order_key),
-//                            getString(R.string.pref_sort_order_default));
-            fetchMoviesTask.execute(sortOrder);
-        } else {
-            Toast.makeText(getContext(), R.string.no_internet_connection, Toast.LENGTH_LONG).show();
+    public void updateMovies(String listTypeSelected) {
+        if (!mListType.equalsIgnoreCase(listTypeSelected)) {
+            mListType = listTypeSelected;
+            mPosition = GridView.INVALID_POSITION;
+            getLoaderManager().restartLoader(sPopularMoviesLoader, null, this);
         }
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
-        private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = PopularMoviesContract.ListsEntry.buildListWithListType(mListType);
+        return new CursorLoader(getActivity(), uri, sMovieColumns, null, null, null);
+    }
 
-        @Override
-        protected List<Movie> doInBackground(String... params) {
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mMoviesAdapter.swapCursor(data);
+        mGridView.smoothScrollToPosition(mPosition);
+    }
 
-            if (params.length == 0) {
-                return null;
-            }
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mMoviesAdapter.swapCursor(null);
+    }
 
-            final String MOVIES_DB_BASE_URL = "https://api.themoviedb.org/3/movie/";
-            HttpsURLConnection httpsURLConnection = null;
-            BufferedReader bufferedReader = null;
-
-            //https://api.themoviedb.org/3/movie/popular
-            //https://api.themoviedb.org/3/movie/top_rated
-            Uri uri = Uri.parse(MOVIES_DB_BASE_URL).buildUpon()
-                    .appendPath(params[0])
-                    .appendQueryParameter("api_key", BuildConfig.MOVIE_DB_API_KEY)
-                    .build();
-
-            try {
-                URL url = new URL(uri.toString());
-                httpsURLConnection = (HttpsURLConnection) url.openConnection();
-                httpsURLConnection.setRequestMethod("GET");
-                httpsURLConnection.connect();
-
-                InputStream inputStream = httpsURLConnection.getInputStream();
-                StringBuffer stringBuffer = new StringBuffer();
-
-                if (inputStream == null) {
-                    return null;
-                }
-
-                bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuffer.append(line + "\n");
-                }
-
-                if (stringBuffer.length() == 0) {
-                    return null;
-                }
-
-                return getMoviesFromJson(stringBuffer.toString());
-            } catch (IOException ioe) {
-                Log.e(LOG_TAG, "Error ", ioe);
-                return null;
-            } finally {
-                if (httpsURLConnection != null) {
-                    httpsURLConnection.disconnect();
-                }
-                if (bufferedReader != null) {
-                    try {
-                        bufferedReader.close();
-                    } catch (final IOException ioe) {
-                        Log.e(LOG_TAG, "Error closing stream", ioe);
-                    }
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            if ((movies != null) && (!movies.isEmpty())) {
-                mMoviesAdapter.clear();
-                mMoviesAdapter.addAll(movies);
-            }
-        }
-
-        private List<Movie> getMoviesFromJson(String jsonMovies) {
-            final String MDB_RESULTS = "results";
-
-            Gson gson = new Gson();
-            JsonParser jsonParser = new JsonParser();
-            JsonObject jsonObject = (JsonObject) jsonParser.parse(jsonMovies);
-            JsonElement jsonElement = jsonObject.get(MDB_RESULTS);
-
-            Movie[] movies = gson.fromJson(jsonElement, Movie[].class);
-            return Arrays.asList(movies);
-        }
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri dateUri);
     }
 }

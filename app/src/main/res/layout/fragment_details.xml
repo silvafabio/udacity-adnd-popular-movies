@@ -9,40 +9,39 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ImageView
+            android:id="@+id/movie_backdrop"
+            style="@style/MovieDetailsBackdrop" />
+
         <TextView
-            android:id="@+id/movie_original_title"
-            style="@style/MovieDetailsTitle" />
+            android:id="@+id/movie_title"
+            style="@style/MovieDetailsTitle"
+            android:layout_alignBottom="@+id/movie_backdrop" />
 
         <ImageView
             android:id="@+id/movie_thumbnail"
             style="@style/MovieDetailsPosterThumbnail"
-            android:layout_below="@+id/movie_original_title" />
+            android:layout_below="@+id/movie_backdrop" />
 
         <TextView
             android:id="@+id/movie_release_date_label"
             style="@style/BaseText.MarginTop"
-            android:text="@string/release_date_label"
-            android:layout_alignLeft="@+id/movie_user_rating"
-            android:layout_alignStart="@+id/movie_user_rating"
-            android:layout_below="@+id/movie_original_title"
-            android:layout_toRightOf="@+id/movie_thumbnail" />
+            android:layout_below="@+id/movie_backdrop"
+            android:layout_toRightOf="@+id/movie_thumbnail"
+            android:text="@string/release_date_label" />
 
         <TextView
             android:id="@+id/movie_release_date"
             style="@style/BaseText.Grey.Medium"
-            android:layout_alignLeft="@+id/movie_user_rating"
-            android:layout_alignStart="@+id/movie_user_rating"
             android:layout_below="@+id/movie_release_date_label"
             android:layout_toRightOf="@+id/movie_thumbnail" />
 
         <TextView
             android:id="@+id/movie_user_rating_label"
             style="@style/BaseText.MarginTop"
-            android:text="@string/users_rating_label"
-            android:layout_alignLeft="@+id/movie_user_rating"
-            android:layout_alignStart="@+id/movie_user_rating"
             android:layout_below="@+id/movie_release_date"
-            android:layout_toRightOf="@+id/movie_thumbnail" />
+            android:layout_toRightOf="@+id/movie_thumbnail"
+            android:text="@string/users_rating_label" />
 
         <TextView
             android:id="@+id/movie_user_rating"
@@ -50,10 +49,58 @@
             android:layout_below="@+id/movie_user_rating_label"
             android:layout_toRightOf="@+id/movie_thumbnail" />
 
+        <TextView
+            android:id="@+id/movie_favorite_label"
+            style="@style/BaseText.MarginTop"
+            android:layout_below="@+id/movie_user_rating"
+            android:layout_toRightOf="@+id/movie_thumbnail"
+            android:text="@string/favorito" />
+
+        <ImageButton
+            android:id="@+id/movie_favorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/movie_favorite_label"
+            android:layout_toRightOf="@+id/movie_thumbnail"
+            android:background="#00ffffff"
+            android:src="@android:drawable/btn_star" />
+
         <WebView
             android:id="@+id/movie_overview"
             style="@style/BaseText.Grey.Small.Margin"
             android:layout_below="@+id/movie_thumbnail" />
+
+        <TextView
+            android:id="@+id/videos_list_label"
+            style="@style/BaseText.Grey.Small.Bold"
+            android:layout_below="@+id/movie_overview"
+            android:layout_marginLeft="@dimen/margin_small"
+            android:text="@string/trailers"
+            android:visibility="gone"/>
+
+        <ListView
+            android:id="@+id/videos_list"
+            style="@style/BaseText.Grey.Small.Margin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/videos_list_label"
+            android:divider="@color/black" />
+
+        <TextView
+            android:id="@+id/movie_reviews_label"
+            style="@style/BaseText.Grey.Small.Bold"
+            android:layout_below="@+id/videos_list"
+            android:layout_marginLeft="@dimen/margin_small"
+            android:text="@string/reviews"
+            android:visibility="gone"/>
+
+        <ListView
+            android:id="@+id/reviews_list"
+            style="@style/BaseText.Grey.Small.Margin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/movie_reviews_label"
+            android:divider="@color/black" />
 
     </RelativeLayout>
 </ScrollView>
