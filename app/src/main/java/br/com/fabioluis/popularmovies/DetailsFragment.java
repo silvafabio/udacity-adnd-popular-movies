@@ -85,6 +85,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     private static final String sLogTag = DetailsFragment.class.getSimpleName();
     private static final String sSavedVideosAdapter = "mVideosAdapter";
     private static final String sSavedReviewsAdapter = "mReviewsAdapter";
+    private static final String sSavedTowPanels = "mTwoPanels";
     private static final String sTextoPadraoCompartilhamento = "\r\n\r\nDescobri este filme através do App do Fábio, muito legal ;-)";
     private static final int sDetailLoader = 0;
 
@@ -94,6 +95,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     private ArrayList<Video> mVideos;
     private ArrayList<Review> mReviews;
     private int mFavorite;
+    private boolean mTwoPanels;
 
     private VideosAdapter mVideosAdapter;
     private ReviewsAdapter mReviewsAdapter;
@@ -109,6 +111,9 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     private TextView mTrailersLabel;
     private ImageButton mFavoriteButton;
     private MenuItem mMenuItem;
+    private TextView mLancamentoLabel;
+    private TextView mUserRatingLabel;
+    private TextView mFavoriteLabel;
 
     public DetailsFragment() {
         setHasOptionsMenu(true);
@@ -119,6 +124,11 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         inflater.inflate(R.menu.details_fragment, menu);
         mMenuItem = menu.findItem(R.id.action_share);
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(mMenuItem);
+
+        if (mVideos != null && !mVideos.isEmpty()) {
+            mMenuItem.setVisible(true);
+            mShareActionProvider.setShareIntent(createShareMovieIntent());
+        }
     }
 
     @Nullable
@@ -149,6 +159,10 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         mTrailersLabel = (TextView) view.findViewById(R.id.videos_list_label);
         mFavoriteButton = (ImageButton) view.findViewById(R.id.movie_favorite);
 
+        mLancamentoLabel = (TextView) view.findViewById(R.id.movie_release_date_label);
+        mUserRatingLabel = (TextView) view.findViewById(R.id.movie_user_rating_label);
+        mFavoriteLabel = (TextView) view.findViewById(R.id.movie_favorite_label);
+
         mFavoriteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,6 +180,10 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             mReviews = savedInstanceState.getParcelableArrayList(sSavedReviewsAdapter);
         } else {
             mReviews = new ArrayList<>();
+        }
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(sSavedTowPanels)) {
+            mTwoPanels = savedInstanceState.getBoolean(sSavedTowPanels);
         }
 
         mVideosAdapter = new VideosAdapter(getActivity(), mVideos);
@@ -211,11 +229,14 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                 .append(sTextoPadraoCompartilhamento);
 
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        //shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, sb.toString());
         return shareIntent;
+    }
+
+    public void setUseTowPanels(boolean useTodayLayout) {
+        mTwoPanels = useTodayLayout;
     }
 
     @Override
@@ -227,6 +248,8 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         if (mReviews != null && !mReviews.isEmpty()) {
             outState.putParcelableArrayList(sSavedReviewsAdapter, mReviews);
         }
+
+        outState.putBoolean(sSavedTowPanels, mTwoPanels);
 
         super.onSaveInstanceState(outState);
     }
@@ -258,6 +281,11 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             mMovieId = data.getString(COL_MOVIE_ID);
             mFavorite = data.getInt(COL_FAVORITE);
 
+            mLancamentoLabel.setVisibility(View.VISIBLE);
+            mUserRatingLabel.setVisibility(View.VISIBLE);
+            mFavoriteLabel.setVisibility(View.VISIBLE);
+            mFavoriteButton.setVisibility(View.VISIBLE);
+
             if (mFavorite == 1) {
                 mFavoriteButton.setImageResource(android.R.drawable.btn_star_big_on);
             }
@@ -266,7 +294,11 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             mTitle.setText(title);
 
             String backdrop = data.getString(COL_BACKDROP);
-            Picasso.with(getContext()).load(Utils.BACKDROP_BASE_URL + backdrop).into(mBackdrop);
+            if (mTwoPanels) {
+                Picasso.with(getContext()).load(Utils.BACKDROP_BASE_URL_MEDIUM + backdrop).into(mBackdrop);
+            } else {
+                Picasso.with(getContext()).load(Utils.BACKDROP_BASE_URL + backdrop).into(mBackdrop);
+            }
 
             String poster = data.getString(COL_POSTER);
             Picasso.with(getContext()).load(Utils.POSTER_BASE_URL + poster).into(mPoster);
@@ -349,8 +381,11 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                 mVideos.addAll(videosList);
                 mVideosAdapter.addAll(videosList);
                 mTrailersLabel.setVisibility(View.VISIBLE);
-                mMenuItem.setVisible(true);
-                mShareActionProvider.setShareIntent(createShareMovieIntent());
+
+                if (mShareActionProvider != null) {
+                    mMenuItem.setVisible(true);
+                    mShareActionProvider.setShareIntent(createShareMovieIntent());
+                }
             }
         }
     }

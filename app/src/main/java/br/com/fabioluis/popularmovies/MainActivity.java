@@ -13,9 +13,9 @@ import android.view.MenuItem;
 
 import br.com.fabioluis.popularmovies.sync.PopularMoviesSyncAdapter;
 
-public class MainActivity extends AppCompatActivity implements PopularMoviesFragment.Callback{
+public class MainActivity extends AppCompatActivity implements PopularMoviesFragment.Callback {
 
-    private static final String sPopularMoviesFragmentTag = "PMFTAG";
+    private static final String sPopularMoviesDetailsFragmentTag = "DFTAG";
     private boolean mTwoPane;
 
     @Override
@@ -23,14 +23,21 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(savedInstanceState == null){
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_container, new PopularMoviesFragment())
-                    .commit();
+        if (findViewById(R.id.movie_detail_container) != null) {
+            mTwoPane = true;
+
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.movie_detail_container, new DetailsFragment(), sPopularMoviesDetailsFragmentTag)
+                        .commit();
+            }
+
+            getSupportActionBar().setElevation(0f);
+        } else {
+            mTwoPane = false;
         }
 
         setTitle(R.string.pref_sort_order_default_label);
-
         PopularMoviesSyncAdapter.initializeSyncAdapter(this);
         //Stetho.initializeWithDefaults(this);
     }
@@ -43,29 +50,22 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-//        if(item.getItemId() == R.id.action_settings){
-//            startActivity(new Intent(this, SettingsActivity.class));
-//            return true;
-//        }
-
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onItemSelected(Uri contentUri) {
         if (mTwoPane) {
-            // In two-pane mode, show the detail view in this activity by
-            // adding or replacing the detail fragment using a
-            // fragment transaction.
             Bundle args = new Bundle();
-     /*       args.putParcelable(DetailFragment.DETAIL_URI, contentUri);
+            args.putParcelable(DetailsFragment.DETAIL_URI, contentUri);
 
-            DetailFragment fragment = new DetailFragment();
+            DetailsFragment fragment = new DetailsFragment();
             fragment.setArguments(args);
+            fragment.setUseTowPanels(true);
 
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.weather_detail_container, fragment, DETAILFRAGMENT_TAG)
-                    .commit();*/
+                    .replace(R.id.movie_detail_container, fragment, sPopularMoviesDetailsFragmentTag)
+                    .commit();
         } else {
             Intent intent = new Intent(this, DetailsActivity.class)
                     .setData(contentUri);

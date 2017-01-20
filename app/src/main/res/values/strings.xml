@@ -53,4 +53,5 @@
     <string name="favorito">Favorito</string>
     <string name="trailers">Trailers</string>
     <string name="action_share">compartilhar</string>
+    <string name="receber_notifica">Receber notificações</string>
 </resources>

@@ -6,19 +6,11 @@
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/movies_grid"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:columnWidth="140dp"
-        android:horizontalSpacing="0dp"
-        android:numColumns="auto_fit"
-        android:stretchMode="columnWidth"
-        android:verticalSpacing="0dp"
-        tools:context=".PopularMoviesFragment" />
+        tools:context=".PopularMoviesFragment"
+        style="@style/MoviesGrid"/>
 
     <TextView
         android:id="@+id/empty_grid_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:text="@string/nenhum_filme_encontrado_nesta_lista"
         android:visibility="gone"
         style="@style/ListaVazia"/>

@@ -27,7 +27,7 @@
         app:showAsAction="never" />
 
     <item android:id="@+id/receber_notificacoes"
-        android:title="Receber notificações"
+        android:title="@string/receber_notifica"
         android:checkable="true"
         app:showAsAction="never"/>
 

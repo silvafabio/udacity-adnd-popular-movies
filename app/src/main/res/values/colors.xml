@@ -3,11 +3,11 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="title_backgroud">#009688</color>
     <color name="white">#FFFFFF</color>
+    <color name="white_no_opacity">#00FFFFFF</color>
     <color name="grey">#888888</color>
     <color name="black">#000000</color>
-    <color name="black_50_opacity">#80000000</color>
+    <color name="black_medium_opacity">#80000000</color>
     <color name="background_youtube_trailer">#fffcdf</color>
     <color name="background_reviews">#e3ffdf</color>
 </resources>

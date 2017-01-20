@@ -28,6 +28,9 @@ import br.com.fabioluis.popularmovies.BuildConfig;
 public class Utils {
     public static final String POSTER_BASE_URL = "http://image.tmdb.org/t/p/w185/";
     public static final String BACKDROP_BASE_URL = "http://image.tmdb.org/t/p/w300/";
+    public static final String BACKDROP_BASE_URL_MEDIUM = "http://image.tmdb.org/t/p/w780/";
+    public static final String BACKDROP_BASE_URL_BIG = "http://image.tmdb.org/t/p/w1280/";
+    public static final String BACKDROP_BASE_URL_ORIGINAL = "http://image.tmdb.org/t/p/original/";
     public static final String YOUTUBE_BASE_URL = "http://www.youtube.com/watch?v=";
 
     private static final String sLogTag = Utils.class.getSimpleName();
