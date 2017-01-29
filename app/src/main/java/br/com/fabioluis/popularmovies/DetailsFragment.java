@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,6 +12,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,21 +27,26 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.GsonBuilder;
 import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import br.com.fabioluis.popularmovies.data.PopularMoviesContract;
+import br.com.fabioluis.popularmovies.deserializers.TheMoviesDbResultsDeserializer;
+import br.com.fabioluis.popularmovies.entrypoints.rest.movies.review.ReviewsFromMovieRestTmdb;
+import br.com.fabioluis.popularmovies.entrypoints.rest.movies.video.VideosFromMovieRestTmdb;
 import br.com.fabioluis.popularmovies.model.Review;
 import br.com.fabioluis.popularmovies.model.Video;
 import br.com.fabioluis.utils.Utils;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by silva on 02/01/2017.
@@ -88,7 +93,9 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     private static final String sSavedTowPanels = "mTwoPanels";
     private static final String sTextoPadraoCompartilhamento = "\r\n\r\nDescobri este filme através do App do Fábio, muito legal ;-)";
     private static final int sDetailLoader = 0;
+    private static final String sVideoSite = "YouTube";
 
+    private final String mLogTag = DetailsFragment.class.getSimpleName();
     private Uri mUri;
     private String mBackgroundColor;
     private String mMovieId;
@@ -339,82 +346,97 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 
     public void carregaInformacoesOnLine() {
         if (Utils.isOnLine(getContext()) && (mVideos.isEmpty() || mReviews.isEmpty())) {
-            CarregaVideos carregaVideos = new CarregaVideos();
-            carregaVideos.execute(mMovieId);
-            CarregaReviews carregaReviews = new CarregaReviews();
-            carregaReviews.execute(mMovieId);
+            carregaVideos();
+            carregaReviews();
         }
     }
 
-    public class CarregaVideos extends AsyncTask<String, Void, List<Video>> {
-        private static final String sVideoSite = "YouTube";
+    private void carregaReviews() {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(List.class, new TheMoviesDbResultsDeserializer<Review>())
+                .create();
 
-        @Override
-        protected List<Video> doInBackground(String... params) {
-            if (params.length == 0) {
-                return null;
-            }
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Utils.MOVIES_DB_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
 
-            String json = Utils.getDataFromApi("videos", params[0]);
+        ReviewsFromMovieRestTmdb reviewsFromMovie = retrofit.create(ReviewsFromMovieRestTmdb.class);
+        Call<List<Review>> call = reviewsFromMovie.getReviews(mMovieId, BuildConfig.MOVIE_DB_API_KEY);
 
-            Gson gson = new Gson();
-            JsonParser jsonParser = new JsonParser();
-            JsonObject jsonObject = (JsonObject) jsonParser.parse(json);
-            JsonElement jsonElement = jsonObject.get("results");
+        call.enqueue(new Callback<List<Review>>() {
+            @Override
+            public void onResponse(Call<List<Review>> call, Response<List<Review>> response) {
+                if (response != null
+                        && response.isSuccessful()
+                        && response.body() != null) {
 
-            Video[] videosRetornados = gson.fromJson(jsonElement, Video[].class);
+                    List<Review> reviewsList = response.body();
 
-            List<Video> videos = new ArrayList<>();
-
-            for (Video video : videosRetornados) {
-                if (video.getSite() != null && video.getSite().equalsIgnoreCase(sVideoSite)) {
-                    videos.add(video);
+                    if (reviewsList != null && !reviewsList.isEmpty()) {
+                        mReviews.addAll(reviewsList);
+                        mReviewsAdapter.addAll(reviewsList);
+                        mReviewsLabel.setVisibility(View.VISIBLE);
+                    }
                 }
             }
 
-            return videos;
-        }
-
-        @Override
-        protected void onPostExecute(List<Video> videosList) {
-            if (videosList != null && !videosList.isEmpty()) {
-                mVideos.addAll(videosList);
-                mVideosAdapter.addAll(videosList);
-                mTrailersLabel.setVisibility(View.VISIBLE);
-
-                if (mShareActionProvider != null) {
-                    mMenuItem.setVisible(true);
-                    mShareActionProvider.setShareIntent(createShareMovieIntent());
-                }
+            @Override
+            public void onFailure(Call<List<Review>> call, Throwable t) {
+                Log.e(mLogTag, t.getMessage());
             }
-        }
+        });
     }
 
-    public class CarregaReviews extends AsyncTask<String, Void, List<Review>> {
-        @Override
-        protected List<Review> doInBackground(String... params) {
-            if (params.length == 0) {
-                return null;
+    private void carregaVideos() {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(List.class, new TheMoviesDbResultsDeserializer<Video>())
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Utils.MOVIES_DB_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        VideosFromMovieRestTmdb videosFromMovie = retrofit.create(VideosFromMovieRestTmdb.class);
+        Call<List<Video>> call = videosFromMovie.getVideos(mMovieId, BuildConfig.MOVIE_DB_API_KEY);
+
+        call.enqueue(new Callback<List<Video>>() {
+            @Override
+            public void onResponse(Call<List<Video>> call, Response<List<Video>> response) {
+                if (response != null
+                        && response.isSuccessful()
+                        && response.body() != null) {
+                    List<Video> videosRetornados = response.body();
+                    List<Video> videos = new ArrayList<>();
+
+                    for (Video video : videosRetornados) {
+                        if (video.getSite() != null && video.getSite().equalsIgnoreCase(sVideoSite)) {
+                            videos.add(video);
+                        }
+                    }
+
+                    if (videos != null && !videos.isEmpty()) {
+                        mVideos.clear();
+                        mVideos.addAll(videos);
+                        //mVideosAdapter.clear();
+                        //mVideosAdapter.addAll(videos);
+                        mVideosAdapter.notifyDataSetChanged();
+                        mTrailersLabel.setVisibility(View.VISIBLE);
+
+                        if (mShareActionProvider != null) {
+                            mMenuItem.setVisible(true);
+                            mShareActionProvider.setShareIntent(createShareMovieIntent());
+                        }
+                    }
+
+                }
             }
 
-            String json = Utils.getDataFromApi("reviews", params[0]);
-
-            Gson gson = new Gson();
-            JsonParser jsonParser = new JsonParser();
-            JsonObject jsonObject = (JsonObject) jsonParser.parse(json);
-            JsonElement jsonElement = jsonObject.get("results");
-
-            Review[] reviews = gson.fromJson(jsonElement, Review[].class);
-            return Arrays.asList(reviews);
-        }
-
-        @Override
-        protected void onPostExecute(List<Review> reviewsList) {
-            if (reviewsList != null && !reviewsList.isEmpty()) {
-                mReviews.addAll(reviewsList);
-                mReviewsAdapter.addAll(reviewsList);
-                mReviewsLabel.setVisibility(View.VISIBLE);
+            @Override
+            public void onFailure(Call<List<Video>> call, Throwable t) {
+                Log.e(mLogTag, t.getMessage());
             }
-        }
+        });
     }
 }

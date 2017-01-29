@@ -21,21 +21,27 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.GsonBuilder;
 
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
+import br.com.fabioluis.popularmovies.BuildConfig;
 import br.com.fabioluis.popularmovies.MainActivity;
 import br.com.fabioluis.popularmovies.R;
 import br.com.fabioluis.popularmovies.data.PopularMoviesContract;
+import br.com.fabioluis.popularmovies.deserializers.TheMoviesDbResultsDeserializer;
+import br.com.fabioluis.popularmovies.entrypoints.rest.movies.MovieFromListRestTmdb;
 import br.com.fabioluis.popularmovies.model.Movie;
 import br.com.fabioluis.utils.Utils;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by silva on 27/12/2016.
@@ -48,8 +54,6 @@ public class PopularMoviesSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int sSyncFlextime = sSyncInternal / 3;
     private static final long sDayInMillis = 1000 * 60 * 60 * 24;
     private static final int sUpdateNotificationId = 5000;
-    private static final String sMdbResults = "results";
-
 
     public PopularMoviesSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -57,25 +61,49 @@ public class PopularMoviesSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-        int  registrosAtualizados = 0;
+        int registrosAtualizados = 0;
 
         registrosAtualizados += syncByListType(getContext().getString(R.string.pref_sort_order_highest_rated));
         registrosAtualizados += syncByListType(getContext().getString(R.string.pref_sort_order_most_popular));
         registrosAtualizados += syncByListType(getContext().getString(R.string.pref_sort_order_now_playing));
         registrosAtualizados += syncByListType(getContext().getString(R.string.pref_sort_order_upcoming));
 
-        if(registrosAtualizados > 0){
+        if (registrosAtualizados > 0) {
             notifyMovies();
         }
 
         return;
     }
 
-    public int syncByListType(String listType){
-        String retorno = Utils.getMoviesFromApi(listType);
-        List<Movie> movies = getMoviesFromJson(retorno);
-        updateDb(movies, listType);
-        return movies.size();
+    public int syncByListType(String listType) {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(List.class, new TheMoviesDbResultsDeserializer<Movie>())
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Utils.MOVIES_DB_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        MovieFromListRestTmdb moviesFromList = retrofit.create(MovieFromListRestTmdb.class);
+        Call<List<Movie>> call = moviesFromList.getMovies(listType, BuildConfig.MOVIE_DB_API_KEY);
+
+        try {
+            Response<List<Movie>> moviesResponse = call.execute();
+
+            if (moviesResponse != null
+                    && moviesResponse.isSuccessful()
+                    && moviesResponse.body() != null) {
+                List<Movie> movies = moviesResponse.body();
+                updateDb(movies, listType);
+                return movies.size();
+            }
+
+        } catch (IOException ioe) {
+            Log.e(mLogTag, ioe.getMessage());
+        }
+
+        return 0;
     }
 
     public void updateDb(List<Movie> movies, String listType) {
@@ -87,7 +115,7 @@ public class PopularMoviesSyncAdapter extends AbstractThreadedSyncAdapter {
             ContentValues listTypeValues = new ContentValues();
 
             // Só vamos adicionar filmes que tenha poster e backdrop
-            if(movie.getPosterPath() != null
+            if (movie.getPosterPath() != null
                     && !movie.getPosterPath().isEmpty()
                     && movie.getBackdropPath() != null
                     && !movie.getBackdropPath().isEmpty()) {
@@ -131,16 +159,6 @@ public class PopularMoviesSyncAdapter extends AbstractThreadedSyncAdapter {
             //notifyMovies();
         }
 
-    }
-
-    private List<Movie> getMoviesFromJson(String jsonMovies) {
-        Gson gson = new Gson();
-        JsonParser jsonParser = new JsonParser();
-        JsonObject jsonObject = (JsonObject) jsonParser.parse(jsonMovies);
-        JsonElement jsonElement = jsonObject.get(sMdbResults);
-
-        Movie[] movies = gson.fromJson(jsonElement, Movie[].class);
-        return Arrays.asList(movies);
     }
 
     private void notifyMovies() {

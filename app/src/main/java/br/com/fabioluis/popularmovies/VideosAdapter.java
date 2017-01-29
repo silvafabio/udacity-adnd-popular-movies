@@ -26,16 +26,31 @@ public class VideosAdapter extends ArrayAdapter<Video> {
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder viewHolder;
         Video video = getItem(position);
 
-        if(convertView == null){
+        if (convertView == null) {
             convertView = LayoutInflater.from(getContext())
                     .inflate(R.layout.videos_list, parent, false);
+
+            viewHolder = new ViewHolder();
+            viewHolder.name = (TextView) convertView.findViewById(R.id.video_name);
+
+            convertView.setTag(viewHolder);
+        }else {
+            viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        TextView name = (TextView) convertView.findViewById(R.id.video_name);
-        name.setText(video.getName());
+
+        if(video != null){
+            viewHolder.name.setText(video.getName());
+
+        }
 
         return convertView;
+    }
+
+    private static class ViewHolder {
+        private TextView name;
     }
 }
