@@ -100,8 +100,8 @@
     </style>
 
     <style name="MovieDetailsYouTubePlay">
-        <item name="android:layout_width">60dp</item>
-        <item name="android:layout_height">30dp</item>
+        <item name="android:layout_width">@dimen/you_tube_play_icon_width</item>
+        <item name="android:layout_height">@dimen/you_tube_play_icon_height</item>
         <item name="android:layout_alignParentLeft">true</item>
         <item name="android:layout_margin">@dimen/margin_medium</item>
     </style>
@@ -116,6 +116,15 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:divider">@color/black</item>
+        <item name="android:layout_margin">@dimen/margin_small</item>
+    </style>
+
+    <style name="MovieDetailsVideoLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:background">@color/background_youtube_trailer</item>
         <item name="android:layout_margin">@dimen/margin_small</item>
     </style>
 </resources>

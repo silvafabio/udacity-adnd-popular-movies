@@ -1,6 +1,7 @@
 package br.com.fabioluis.popularmovies;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -20,10 +21,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -88,8 +88,8 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     };
 
     private static final String sLogTag = DetailsFragment.class.getSimpleName();
-    private static final String sSavedVideosAdapter = "mVideosAdapter";
-    private static final String sSavedReviewsAdapter = "mReviewsAdapter";
+    private static final String sSavedVideos = "mVideos";
+    private static final String sSavedReviews = "mReviews";
     private static final String sSavedTowPanels = "mTwoPanels";
     private static final String sTextoPadraoCompartilhamento = "\r\n\r\nDescobri este filme através do App do Fábio, muito legal ;-)";
     private static final int sDetailLoader = 0;
@@ -104,8 +104,6 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     private int mFavorite;
     private boolean mTwoPanels;
 
-    private VideosAdapter mVideosAdapter;
-    private ReviewsAdapter mReviewsAdapter;
     private ShareActionProvider mShareActionProvider;
 
     private TextView mTitle;
@@ -121,6 +119,8 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     private TextView mLancamentoLabel;
     private TextView mUserRatingLabel;
     private TextView mFavoriteLabel;
+    private LinearLayout mLayoutVideosList;
+    private LinearLayout mLayoutReviewsList;
 
     public DetailsFragment() {
         setHasOptionsMenu(true);
@@ -170,6 +170,9 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         mUserRatingLabel = (TextView) view.findViewById(R.id.movie_user_rating_label);
         mFavoriteLabel = (TextView) view.findViewById(R.id.movie_favorite_label);
 
+        mLayoutVideosList = (LinearLayout) view.findViewById(R.id.layout_videos_list);
+        mLayoutReviewsList = (LinearLayout) view.findViewById(R.id.layout_reviews_list);
+
         mFavoriteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -177,14 +180,14 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             }
         });
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(sSavedVideosAdapter)) {
-            mVideos = savedInstanceState.getParcelableArrayList(sSavedVideosAdapter);
+        if (savedInstanceState != null && savedInstanceState.containsKey(sSavedVideos)) {
+            mVideos = savedInstanceState.getParcelableArrayList(sSavedVideos);
         } else {
             mVideos = new ArrayList<>();
         }
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(sSavedReviewsAdapter)) {
-            mReviews = savedInstanceState.getParcelableArrayList(sSavedReviewsAdapter);
+        if (savedInstanceState != null && savedInstanceState.containsKey(sSavedReviews)) {
+            mReviews = savedInstanceState.getParcelableArrayList(sSavedReviews);
         } else {
             mReviews = new ArrayList<>();
         }
@@ -193,22 +196,8 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             mTwoPanels = savedInstanceState.getBoolean(sSavedTowPanels);
         }
 
-        mVideosAdapter = new VideosAdapter(getActivity(), mVideos);
-        mReviewsAdapter = new ReviewsAdapter(getActivity(), mReviews);
-
-        final ListView videosList = (ListView) view.findViewById(R.id.videos_list);
-        videosList.setAdapter(mVideosAdapter);
-        ListView reviewsList = (ListView) view.findViewById(R.id.reviews_list);
-        reviewsList.setAdapter(mReviewsAdapter);
-
-        videosList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Video video = (Video) videosList.getItemAtPosition(position);
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.YOUTUBE_BASE_URL + video.getKey()));
-                startActivity(intent);
-            }
-        });
+        adicionaVideosNaView();
+        adicionaReviewsNaView();
 
         return view;
     }
@@ -232,7 +221,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 
     private Intent createShareMovieIntent() {
         StringBuilder sb = new StringBuilder(Utils.YOUTUBE_BASE_URL)
-                .append(mVideosAdapter.getItem(0).getKey())
+                .append(mVideos.get(0).getKey())
                 .append(sTextoPadraoCompartilhamento);
 
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -249,11 +238,11 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (mVideos != null && !mVideos.isEmpty()) {
-            outState.putParcelableArrayList(sSavedVideosAdapter, mVideos);
+            outState.putParcelableArrayList(sSavedVideos, mVideos);
         }
 
         if (mReviews != null && !mReviews.isEmpty()) {
-            outState.putParcelableArrayList(sSavedReviewsAdapter, mReviews);
+            outState.putParcelableArrayList(sSavedReviews, mReviews);
         }
 
         outState.putBoolean(sSavedTowPanels, mTwoPanels);
@@ -374,8 +363,9 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                     List<Review> reviewsList = response.body();
 
                     if (reviewsList != null && !reviewsList.isEmpty()) {
+                        mReviews.clear();
                         mReviews.addAll(reviewsList);
-                        mReviewsAdapter.addAll(reviewsList);
+                        adicionaReviewsNaView();
                         mReviewsLabel.setVisibility(View.VISIBLE);
                     }
                 }
@@ -419,9 +409,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                     if (videos != null && !videos.isEmpty()) {
                         mVideos.clear();
                         mVideos.addAll(videos);
-                        //mVideosAdapter.clear();
-                        //mVideosAdapter.addAll(videos);
-                        mVideosAdapter.notifyDataSetChanged();
+                        adicionaVideosNaView();
                         mTrailersLabel.setVisibility(View.VISIBLE);
 
                         if (mShareActionProvider != null) {
@@ -438,5 +426,45 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                 Log.e(mLogTag, t.getMessage());
             }
         });
+    }
+
+    private void adicionaVideosNaView() {
+        mLayoutVideosList.removeAllViews();
+
+        for (Video video : mVideos) {
+            LayoutInflater layoutInflater = (LayoutInflater) getActivity().getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = layoutInflater.inflate(R.layout.item_video, null);
+
+            TextView videoNome = (TextView) view.findViewById(R.id.video_name);
+            videoNome.setText(video.getName());
+
+            final String url = video.getKey();
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.YOUTUBE_BASE_URL + url));
+                    startActivity(intent);
+                }
+            });
+
+            mLayoutVideosList.addView(view);
+        }
+    }
+
+    private void adicionaReviewsNaView() {
+        mLayoutReviewsList.removeAllViews();
+
+        for (Review review : mReviews) {
+            LayoutInflater layoutInflater = (LayoutInflater) getActivity().getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = layoutInflater.inflate(R.layout.item_review, null);
+
+            TextView author = (TextView) view.findViewById(R.id.review_author);
+            author.setText(review.getAuthor());
+
+            TextView content = (TextView) view.findViewById(R.id.review_content);
+            content.setText(review.getContent());
+
+            mLayoutReviewsList.addView(view);
+        }
     }
 }

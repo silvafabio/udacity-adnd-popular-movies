@@ -11,4 +11,8 @@
     <dimen name="margin_medium">16dp</dimen>
 
     <dimen name="line_spacing_extra_medium">8sp</dimen>
+
+
+    <dimen name="you_tube_play_icon_width">60dp</dimen>
+    <dimen name="you_tube_play_icon_height">30dp</dimen>
 </resources>
