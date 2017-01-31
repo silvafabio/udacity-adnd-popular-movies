@@ -78,7 +78,7 @@
             android:layout_marginLeft="@dimen/margin_small"
             android:text="@string/trailers"
             android:visibility="gone"
-            style="@style/BaseText.Grey.Small.Bold"/>
+            style="@style/BaseText.Grey.Small.Bold.MarginsTitlesMovieDetails"/>
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
@@ -91,10 +91,9 @@
         <TextView
             android:id="@+id/movie_reviews_label"
             android:layout_below="@+id/layout_videos_list"
-            android:layout_marginLeft="@dimen/margin_small"
             android:text="@string/reviews"
             android:visibility="gone"
-            style="@style/BaseText.Grey.Small.Bold"/>
+            style="@style/BaseText.Grey.Small.Bold.MarginsTitlesMovieDetails"/>
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"

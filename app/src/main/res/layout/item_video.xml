@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layout_video_item"
-    style="@style/MovieDetailsVideoLayout">
+    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:padding="@dimen/padding_small">
 
-    <ImageView
-        android:id="@+id/video_play_image"
-        style="@style/MovieDetailsYouTubePlay"
-        android:src="@drawable/youtube_button"/>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/layout_video_item"
+        style="@style/MovieDetailsVideoLayout">
 
-    <TextView
-        android:id="@+id/video_name"
-        style="@style/BaseText" />
+        <ImageView
+            android:id="@+id/video_play_image"
+            style="@style/MovieDetailsYouTubePlay"
+            android:src="@drawable/youtube_button" />
 
+        <TextView
+            android:id="@+id/video_name"
+            style="@style/BaseText.Grey" />
+
+    </LinearLayout>
 </LinearLayout>

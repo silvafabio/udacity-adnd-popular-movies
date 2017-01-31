@@ -366,7 +366,6 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                         mReviews.clear();
                         mReviews.addAll(reviewsList);
                         adicionaReviewsNaView();
-                        mReviewsLabel.setVisibility(View.VISIBLE);
                     }
                 }
             }
@@ -410,7 +409,6 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                         mVideos.clear();
                         mVideos.addAll(videos);
                         adicionaVideosNaView();
-                        mTrailersLabel.setVisibility(View.VISIBLE);
 
                         if (mShareActionProvider != null) {
                             mMenuItem.setVisible(true);
@@ -448,6 +446,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             });
 
             mLayoutVideosList.addView(view);
+            mTrailersLabel.setVisibility(View.VISIBLE);
         }
     }
 
@@ -465,6 +464,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             content.setText(review.getContent());
 
             mLayoutReviewsList.addView(view);
+            mReviewsLabel.setVisibility(View.VISIBLE);
         }
     }
 }

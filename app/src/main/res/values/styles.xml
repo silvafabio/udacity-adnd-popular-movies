@@ -17,12 +17,12 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="BaseText.LineSpacingExtra8sp">
-        <item name="android:lineSpacingExtra">@dimen/line_spacing_extra_medium</item>
-    </style>
-
     <style name="BaseText.Grey">
         <item name="android:textColor">@color/grey</item>
+    </style>
+
+    <style name="BaseText.Grey.LineSpacingExtra8sp">
+        <item name="android:lineSpacingExtra">@dimen/line_spacing_extra_medium</item>
     </style>
 
     <style name="BaseText.Grey.Small">
@@ -35,6 +35,12 @@
 
     <style name="BaseText.Grey.Small.Bold">
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BaseText.Grey.Small.Bold.MarginsTitlesMovieDetails">
+        <item name="android:layout_marginLeft">@dimen/margin_small</item>
+        <item name="android:layout_marginTop">@dimen/margin_medium</item>
+        <item name="android:layout_marginBottom">@dimen/margin_medium</item>
     </style>
 
     <style name="BaseText.Grey.Medium">
@@ -111,20 +117,20 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@color/white_no_opacity</item>
     </style>
-
+<!--
     <style name="MovieDetailsListViews">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:divider">@color/black</item>
         <item name="android:layout_margin">@dimen/margin_small</item>
     </style>
-
+-->
     <style name="MovieDetailsVideoLayout">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
         <item name="android:background">@color/background_youtube_trailer</item>
-        <item name="android:layout_margin">@dimen/margin_small</item>
+        <!--<item name="android:layout_marginBottom">@dimen/margin_small</item>-->
     </style>
 </resources>
