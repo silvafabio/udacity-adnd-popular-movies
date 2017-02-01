@@ -14,7 +14,7 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-import br.com.fabioluis.utils.Utils;
+import br.com.fabioluis.popularmovies.entrypoints.rest.movies.MovieFromListRestTmdb;
 
 /**
  * Created by Fabio Luis on 28/09/2016.
@@ -41,7 +41,7 @@ public class MoviesAdapter extends CursorAdapter {
         String poster = cursor.getString(PopularMoviesFragment.COL_POSTER);
 
         Picasso.with(context)
-                .load(Utils.POSTER_BASE_URL + poster)
+                .load(MovieFromListRestTmdb.POSTER_BASE_URL + poster)
                 .resize(185, 277)
                 .into(viewHolder.imageView);
     }

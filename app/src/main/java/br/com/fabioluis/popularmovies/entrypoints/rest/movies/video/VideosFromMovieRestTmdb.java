@@ -14,6 +14,8 @@ import retrofit2.http.Query;
 
 public interface VideosFromMovieRestTmdb {
 
+    String YOUTUBE_BASE_URL = "http://www.youtube.com/watch?v=";
+
     @GET("{movie_id}/videos")
     Call<List<Video>> getVideos(@Path("movie_id") String movieId, @Query("api_key") String apiKey);
 }

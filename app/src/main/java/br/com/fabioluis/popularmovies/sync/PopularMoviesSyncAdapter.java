@@ -37,7 +37,6 @@ import br.com.fabioluis.popularmovies.data.PopularMoviesContract;
 import br.com.fabioluis.popularmovies.deserializers.TheMoviesDbResultsDeserializer;
 import br.com.fabioluis.popularmovies.entrypoints.rest.movies.MovieFromListRestTmdb;
 import br.com.fabioluis.popularmovies.model.Movie;
-import br.com.fabioluis.utils.Utils;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -81,7 +80,7 @@ public class PopularMoviesSyncAdapter extends AbstractThreadedSyncAdapter {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Utils.MOVIES_DB_BASE_URL)
+                .baseUrl(MovieFromListRestTmdb.MOVIES_DB_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 

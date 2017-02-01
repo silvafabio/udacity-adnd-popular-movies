@@ -37,11 +37,13 @@ import java.util.List;
 
 import br.com.fabioluis.popularmovies.data.PopularMoviesContract;
 import br.com.fabioluis.popularmovies.deserializers.TheMoviesDbResultsDeserializer;
+import br.com.fabioluis.popularmovies.entrypoints.net.NetworkConnectivity;
+import br.com.fabioluis.popularmovies.entrypoints.net.NetworkConnectivityListener;
+import br.com.fabioluis.popularmovies.entrypoints.rest.movies.MovieFromListRestTmdb;
 import br.com.fabioluis.popularmovies.entrypoints.rest.movies.review.ReviewsFromMovieRestTmdb;
 import br.com.fabioluis.popularmovies.entrypoints.rest.movies.video.VideosFromMovieRestTmdb;
 import br.com.fabioluis.popularmovies.model.Review;
 import br.com.fabioluis.popularmovies.model.Video;
-import br.com.fabioluis.utils.Utils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -52,7 +54,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by silva on 02/01/2017.
  */
 
-public class DetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        NetworkConnectivityListener{
 
     static final int COL_ID = 0;
     static final int COL_MOVIE_ID = 1;
@@ -202,6 +205,12 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        PopularMoviesApplication.getInstance().setConnectivityListener(this);
+    }
+
     public void trataFavorito() {
         if (mFavorite == 1) {
             mFavorite = 0;
@@ -220,7 +229,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     }
 
     private Intent createShareMovieIntent() {
-        StringBuilder sb = new StringBuilder(Utils.YOUTUBE_BASE_URL)
+        StringBuilder sb = new StringBuilder(VideosFromMovieRestTmdb.YOUTUBE_BASE_URL)
                 .append(mVideos.get(0).getKey())
                 .append(sTextoPadraoCompartilhamento);
 
@@ -291,13 +300,13 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
 
             String backdrop = data.getString(COL_BACKDROP);
             if (mTwoPanels) {
-                Picasso.with(getContext()).load(Utils.BACKDROP_BASE_URL_MEDIUM + backdrop).into(mBackdrop);
+                Picasso.with(getContext()).load(MovieFromListRestTmdb.BACKDROP_BASE_URL_MEDIUM + backdrop).into(mBackdrop);
             } else {
-                Picasso.with(getContext()).load(Utils.BACKDROP_BASE_URL + backdrop).into(mBackdrop);
+                Picasso.with(getContext()).load(MovieFromListRestTmdb.BACKDROP_BASE_URL + backdrop).into(mBackdrop);
             }
 
             String poster = data.getString(COL_POSTER);
-            Picasso.with(getContext()).load(Utils.POSTER_BASE_URL + poster).into(mPoster);
+            Picasso.with(getContext()).load(MovieFromListRestTmdb.POSTER_BASE_URL + poster).into(mPoster);
 
             String releaseDate = data.getString(COL_RELEASE_DATE);
             try {
@@ -334,7 +343,9 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     }
 
     public void carregaInformacoesOnLine() {
-        if (Utils.isOnLine(getContext()) && (mVideos.isEmpty() || mReviews.isEmpty())) {
+        if (NetworkConnectivity.isConnected()
+                && (mVideos.isEmpty()
+                || mReviews.isEmpty())) {
             carregaVideos();
             carregaReviews();
         }
@@ -346,7 +357,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Utils.MOVIES_DB_BASE_URL)
+                .baseUrl(MovieFromListRestTmdb.MOVIES_DB_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
@@ -383,7 +394,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Utils.MOVIES_DB_BASE_URL)
+                .baseUrl(MovieFromListRestTmdb.MOVIES_DB_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
@@ -440,7 +451,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.YOUTUBE_BASE_URL + url));
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(VideosFromMovieRestTmdb.YOUTUBE_BASE_URL + url));
                     startActivity(intent);
                 }
             });
@@ -466,5 +477,10 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             mLayoutReviewsList.addView(view);
             mReviewsLabel.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onChange(boolean isConnected) {
+        boolean teste = isConnected;
     }
 }
