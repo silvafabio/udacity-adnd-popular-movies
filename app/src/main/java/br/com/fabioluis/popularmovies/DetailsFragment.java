@@ -55,7 +55,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class DetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-        NetworkConnectivityListener{
+        NetworkConnectivityListener {
 
     static final int COL_ID = 0;
     static final int COL_MOVIE_ID = 1;
@@ -130,6 +130,14 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+        mVideos = new ArrayList<>();
+        mReviews = new ArrayList<>();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.details_fragment, menu);
         mMenuItem = menu.findItem(R.id.action_share);
@@ -183,7 +191,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
             }
         });
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(sSavedVideos)) {
+ /*       if (savedInstanceState != null && savedInstanceState.containsKey(sSavedVideos)) {
             mVideos = savedInstanceState.getParcelableArrayList(sSavedVideos);
         } else {
             mVideos = new ArrayList<>();
@@ -194,7 +202,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         } else {
             mReviews = new ArrayList<>();
         }
-
+*/
         if (savedInstanceState != null && savedInstanceState.containsKey(sSavedTowPanels)) {
             mTwoPanels = savedInstanceState.getBoolean(sSavedTowPanels);
         }
@@ -244,7 +252,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         mTwoPanels = useTodayLayout;
     }
 
-    @Override
+/*    @Override
     public void onSaveInstanceState(Bundle outState) {
         if (mVideos != null && !mVideos.isEmpty()) {
             outState.putParcelableArrayList(sSavedVideos, mVideos);
@@ -257,7 +265,7 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
         outState.putBoolean(sSavedTowPanels, mTwoPanels);
 
         super.onSaveInstanceState(outState);
-    }
+    }*/
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -343,11 +351,17 @@ public class DetailsFragment extends Fragment implements LoaderManager.LoaderCal
     }
 
     public void carregaInformacoesOnLine() {
-        if (NetworkConnectivity.isConnected()
-                && (mVideos.isEmpty()
-                || mReviews.isEmpty())) {
-            carregaVideos();
-            carregaReviews();
+        if (NetworkConnectivity.isConnected()) {
+            if (mVideos.isEmpty() || mReviews.isEmpty()) {
+                carregaVideos();
+                carregaReviews();
+            }
+        } else {
+            mMenuItem.setVisible(false);
+            mLayoutVideosList.removeAllViews();
+            mLayoutReviewsList.removeAllViews();
+            mTrailersLabel.setVisibility(View.INVISIBLE);
+            mReviewsLabel.setVisibility(View.INVISIBLE);
         }
     }
 
