@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/details_scroll_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -16,7 +17,8 @@
         <TextView
             android:id="@+id/movie_title"
             android:layout_alignBottom="@+id/movie_backdrop"
-            style="@style/MovieDetailsTitle"/>
+            style="@style/MovieDetailsTitle"
+            tools:text="Titulo do Filme"/>
 
         <ImageView
             android:id="@+id/movie_thumbnail"
@@ -35,7 +37,8 @@
             android:id="@+id/movie_release_date"
             android:layout_below="@+id/movie_release_date_label"
             android:layout_toRightOf="@+id/movie_thumbnail"
-            style="@style/BaseText.Grey.Medium"/>
+            style="@style/BaseText.Grey.Medium"
+            tools:text="13/05/1980"/>
 
         <TextView
             android:id="@+id/movie_user_rating_label"
@@ -49,7 +52,8 @@
             android:id="@+id/movie_user_rating"
             android:layout_below="@+id/movie_user_rating_label"
             android:layout_toRightOf="@+id/movie_thumbnail"
-            style="@style/BaseText.Grey.Small.Bold"/>
+            style="@style/BaseText.Grey.Small.Bold"
+            tools:text="10/10"/>
 
         <TextView
             android:id="@+id/movie_favorite_label"
@@ -70,7 +74,8 @@
         <WebView
             android:id="@+id/movie_overview"
             android:layout_below="@+id/movie_thumbnail"
-            style="@style/BaseText.Grey.Small.Margin"/>
+            style="@style/BaseText.Grey.Small.Margin"
+            tools:text="Aqui podemos colocar muito texto de teste mesmo para vermos como ele se comporta em mais de uma linha"/>
 
         <TextView
             android:id="@+id/videos_list_label"
