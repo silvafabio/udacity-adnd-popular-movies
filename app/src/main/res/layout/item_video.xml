@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:padding="@dimen/padding_small">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -15,7 +16,8 @@
 
         <TextView
             android:id="@+id/video_name"
-            style="@style/BaseText.Grey" />
+            style="@style/BaseText.Grey"
+            tools:text="Aqui teremos o nome do trailer"/>
 
     </LinearLayout>
 </LinearLayout>

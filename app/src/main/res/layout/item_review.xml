@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:padding="@dimen/padding_small">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -24,14 +25,16 @@
 
             <TextView
                 android:id="@+id/review_author"
-                style="@style/BaseText.Grey" />
+                style="@style/BaseText.Grey"
+                tools:text="Nome do autor"/>
 
         </LinearLayout>
 
         <!-- http://stackoverflow.com/questions/6863974/android-textview-padding-between-lines -->
         <TextView
             android:id="@+id/review_content"
-            style="@style/BaseText.Grey.LineSpacingExtra8sp" />
+            style="@style/BaseText.Grey.LineSpacingExtra8sp"
+            tools:text="Aqui podemos colocar muito texto de teste mesmo para vermos como ele se comporta em mais de uma linha"/>
 
     </LinearLayout>
 </LinearLayout>
