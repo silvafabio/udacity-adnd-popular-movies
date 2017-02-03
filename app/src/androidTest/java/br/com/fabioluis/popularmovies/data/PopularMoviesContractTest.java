@@ -43,7 +43,7 @@ public class PopularMoviesContractTest {
                 TESTE_LIST_TYPE, listUri.getLastPathSegment());
         assertEquals("Erro: List type não bate com o resultado esperado",
                 listUri.toString(),
-                "content://br.com.fabioluis.popularmovies/lists/UPCOMING");
+                "content://br.com.fabioluis.popularmovies/lists/upcoming");
     }
 
 }
